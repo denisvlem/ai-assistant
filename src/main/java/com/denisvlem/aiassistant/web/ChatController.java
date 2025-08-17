@@ -1,28 +1,30 @@
 package com.denisvlem.aiassistant.web;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.denisvlem.aiassistant.web.dto.UserPromptRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.ai.chat.messages.AbstractMessage;
+import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.chat.model.Generation;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 
+import java.util.Optional;
+
+@Slf4j
 @RestController
+@RequiredArgsConstructor
 public class ChatController {
-
-    private static final Logger log = LoggerFactory.getLogger(ChatController.class);
 
     private final ChatClient client;
 
-    public ChatController(ChatClient client) {
-        this.client = client;
-    }
-
     @PostMapping("/ask")
-    public String askChat(@RequestBody @Valid AskRequest request) {
+    public String askChat(@RequestBody @Valid UserPromptRequest request) {
         String llmResponse = client.prompt()
                 .user(request.prompt())
                 .call().content(); //blocking request, wait till the whole response is generated
@@ -30,5 +32,28 @@ public class ChatController {
         return llmResponse;
     }
 
-    public record AskRequest(@NotNull String prompt){}
+    @GetMapping(value = "/ask-with-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter askWithStreaming(@RequestParam String prompt) {
+        SseEmitter sseEmitter = new SseEmitter(0L);
+
+        client.prompt().user(prompt)
+                .stream().chatResponse().subscribe(
+                        result -> processAnotherResponseToken(result, sseEmitter),
+                        sseEmitter::completeWithError,
+                        () -> log.info("The response is processed"));
+
+        return sseEmitter;
+    }
+
+    @SneakyThrows
+    private static void processAnotherResponseToken(ChatResponse result, SseEmitter sseEmitter) {
+        var textChunk = Optional.ofNullable(result)
+                .map(ChatResponse::getResult)
+                .map(Generation::getOutput)
+                .map(AbstractMessage::getText)
+                .orElseThrow();
+
+        sseEmitter.send(textChunk);
+    }
+
 }
