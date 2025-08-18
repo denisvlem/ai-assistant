@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Slf4j
 @Configuration
-public class TestConfiguration {
+public class LlmClientConfiguration {
 
     @Bean
     public ChatClient client(ChatClient.Builder builder) {

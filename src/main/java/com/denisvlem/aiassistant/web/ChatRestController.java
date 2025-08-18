@@ -1,5 +1,7 @@
 package com.denisvlem.aiassistant.web;
 
+import com.denisvlem.aiassistant.entity.Chat;
+import com.denisvlem.aiassistant.repository.ChatRepository;
 import com.denisvlem.aiassistant.web.dto.UserPromptRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,14 +16,21 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-public class ChatController {
+public class ChatRestController {
 
     private final ChatClient client;
+    private final ChatRepository chatRepository;
+
+    @GetMapping
+    public List<Chat> getAllChats() {
+        return chatRepository.findAll();
+    }
 
     @PostMapping("/ask")
     public String askChat(@RequestBody @Valid UserPromptRequest request) {
