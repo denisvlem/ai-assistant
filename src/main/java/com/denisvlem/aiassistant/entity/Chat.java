@@ -15,5 +15,6 @@ public class Chat {
 
     private Long id;
     private String title;
-    private LocalDateTime createdAt;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
 }

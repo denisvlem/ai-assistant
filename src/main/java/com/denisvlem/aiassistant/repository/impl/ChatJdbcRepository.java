@@ -20,7 +20,7 @@ public class ChatJdbcRepository implements ChatRepository {
 
     @Override
     public List<Chat> findAll() {
-        return jdbcTemplate.query("SELECT * FROM chat", chatMapper);
+        return jdbcTemplate.query("SELECT * FROM chat ORDER BY created_at DESC", chatMapper);
     }
 
     @Override
@@ -29,9 +29,10 @@ public class ChatJdbcRepository implements ChatRepository {
     }
 
     @Override
-    public void save(Chat chat) {
-        jdbcTemplate.update(
-                "INSERT INTO chat(title, created_at) VALUES (?, ?)",
+    public Chat save(Chat chat) {
+        return jdbcTemplate.queryForObject(
+                "INSERT INTO chat(title, created_at) VALUES (?, ?) RETURNING id, title, created_at",
+                chatMapper,
                 chat.getTitle(),
                 chat.getCreatedAt() != null ? chat.getCreatedAt() : LocalDateTime.now()
         );

@@ -27,7 +27,7 @@ public class ChatRestController {
     private final ChatClient client;
     private final ChatRepository chatRepository;
 
-    @GetMapping
+    @GetMapping("/all")
     public List<Chat> getAllChats() {
         return chatRepository.findAll();
     }

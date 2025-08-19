@@ -8,6 +8,6 @@ public interface ChatRepository {
 
     List<Chat> findAll();
     Chat findById(Long id);
-    void save(Chat chat);
+    Chat save(Chat chat);
     void delete(Long id);
 }
