@@ -16,7 +16,8 @@ public class ChatMessage {
     private Long id;
     private String content;
     private Role role;
-    private LocalDateTime createdAt;
+    @Builder.Default
+    private LocalDateTime createdAt = LocalDateTime.now();
     private Long chatId;
 
 }

@@ -6,5 +6,8 @@ import java.util.List;
 
 public interface ChatMessageRepository {
     List<ChatMessage> findByChatId(Long id);
-    void save(ChatMessage chatMessage);
+
+    ChatMessage save(ChatMessage chatMessage);
+
+    List<ChatMessage> saveAll(List<ChatMessage> messages);
 }
