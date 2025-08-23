@@ -1,0 +1,51 @@
+/* Sidebar height */
+.sidebar {
+    height: 100vh;
+}
+
+/* Chat list */
+.chat-list a {
+    text-decoration: none;
+    color: inherit;
+    flex-grow: 1;
+}
+
+.chat-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.chat-list li:hover {
+    background-color: #f0f0f0;
+}
+
+/* Message bubbles */
+.chat-bubble {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 20px;
+    margin: 5px 0;
+    word-wrap: break-word;
+}
+
+.chat-bubble.user {
+    background-color: #007bff;
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 5px;
+}
+
+.chat-bubble.ai {
+    background-color: #e9ecef;
+    color: black;
+    margin-right: auto;
+    border-bottom-left-radius: 5px;
+}
+
+/* Scrollable chat */
+.chat-history {
+    height: calc(100vh - 150px);
+    overflow-y: auto;
+    padding-right: 10px;
+}

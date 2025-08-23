@@ -24,7 +24,7 @@ public class ChatJdbcRepository implements ChatRepository {
     }
 
     @Override
-    public Chat findById(Long id) {
+    public Chat getById(Long id) {
         return jdbcTemplate.queryForObject("SELECT * FROM chat WHERE id = ?", chatMapper, id);
     }
 

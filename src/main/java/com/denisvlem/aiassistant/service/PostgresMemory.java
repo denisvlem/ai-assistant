@@ -14,8 +14,10 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
+import java.util.Objects;
 
 @Component
 @RequiredArgsConstructor
@@ -23,25 +25,30 @@ public class PostgresMemory implements ChatMemory {
 
     private final ChatRepository chatRepository;
     private final ChatMessageRepository chatmessageRepository;
+    private final TransactionTemplate tx;
 
     @Override
     @NonNull
-    public void add(@NonNull String conversationId, List<Message> messages) {
-        Chat chat = chatRepository.findById(Long.valueOf(conversationId));
-        chatmessageRepository.saveAll(
-                messages.stream().map(msg -> this.fromMessage(chat.getId(), msg)).toList());
+    public void add(@NonNull String conversationId, @NonNull List<Message> messages) {
+        tx.executeWithoutResult(status -> {
+            Chat chat = chatRepository.getById(Long.valueOf(conversationId));
+            chatmessageRepository.saveAll(
+                    messages.stream().map(msg -> this.fromMessage(chat.getId(), msg)).toList());
+        });
     }
 
     @Override
     @NonNull
     public List<Message> get(@NonNull String conversationId) {
-        return chatmessageRepository.findByChatId(Long.valueOf(conversationId)).stream()
+        List<ChatMessage> messages = tx.execute(status ->
+                chatmessageRepository.findByChatId(Long.valueOf(conversationId)));
+        return Objects.requireNonNull(messages).stream()
                 .map(this::toMessage).toList();
     }
 
     @Override
     public void clear(@NonNull String conversationId) {
-        chatRepository.delete(Long.valueOf(conversationId));
+        tx.executeWithoutResult(status -> chatRepository.delete(Long.valueOf(conversationId)));
     }
 
     @NotNull

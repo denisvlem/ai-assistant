@@ -18,7 +18,6 @@ public enum Role {
     private final String name;
 
     public static Role getRole(String roleName) {
-        log.info("Role name: {}", roleName);
         return Arrays.stream(values())
                 .filter(role -> role.name.equals(roleName))
                 .findFirst().orElseThrow();
