@@ -11,7 +11,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
@@ -36,8 +35,6 @@ public class ChatController {
     private final ChatMessageService chatMessageService;
 
     private final ChatClient chatClient;
-    private final ChatMemory chatMemory;
-
     @SneakyThrows
     private static void processAnotherResponseToken(ChatResponse result, SseEmitter sseEmitter) {
         var messagePart = Optional.ofNullable(result)
@@ -76,13 +73,11 @@ public class ChatController {
     }
 
     @PostMapping("/chat/{chatId}/ask")
-    public String sendMessage(@PathVariable @Valid @NotNull Long chatId,
-                              @RequestParam @Valid @NotEmpty String prompt) {
+    public String ask(@PathVariable @Valid @NotNull Long chatId,
+                      @RequestParam @Valid @NotEmpty String prompt) {
 
         chatClient.prompt()
-                .advisors(MessageChatMemoryAdvisor.builder(chatMemory).
-                        conversationId(String.valueOf(chatId))
-                        .build())
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .user(prompt)
                 .call().content();
 
@@ -97,10 +92,7 @@ public class ChatController {
 
         SseEmitter sseEmitter = new SseEmitter(0L);
         chatClient.prompt()
-                .advisors(
-                        MessageChatMemoryAdvisor.builder(chatMemory)
-                                .conversationId(String.valueOf(chatId))
-                                .build())
+                .advisors(advisorSpec -> advisorSpec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .user(prompt)
                 .stream().chatResponse().subscribe(
                         result -> processAnotherResponseToken(result, sseEmitter),

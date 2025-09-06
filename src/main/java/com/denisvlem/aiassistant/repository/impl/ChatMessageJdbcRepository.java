@@ -84,4 +84,14 @@ public class ChatMessageJdbcRepository implements ChatMessageRepository {
         // Run one query, map all results
         return jdbcTemplate.query(sql.toString(), messageMapper, params.toArray());
     }
+
+    @Override
+    public List<ChatMessage> findByChatIdOrderDescLimit(Long id, int limit) {
+        return jdbcTemplate.query(
+                "SELECT * FROM chat_message WHERE chat_id = ? ORDER BY created_at DESC LIMIT ?",
+                messageMapper,
+                id,
+                limit
+        );
+    }
 }

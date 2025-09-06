@@ -1,11 +1,13 @@
 package com.denisvlem.aiassistant.service;
 
+import com.denisvlem.aiassistant.configuration.ChatHistoryProperties;
 import com.denisvlem.aiassistant.entity.Chat;
 import com.denisvlem.aiassistant.entity.ChatMessage;
 import com.denisvlem.aiassistant.entity.Role;
 import com.denisvlem.aiassistant.repository.ChatMessageRepository;
 import com.denisvlem.aiassistant.repository.ChatRepository;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -13,22 +15,23 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.lang.NonNull;
-import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.util.List;
 import java.util.Objects;
 
-@Component
+
+@Builder
 @RequiredArgsConstructor
 public class PostgresMemory implements ChatMemory {
 
     private final ChatRepository chatRepository;
     private final ChatMessageRepository chatmessageRepository;
     private final TransactionTemplate tx;
+    private final ChatHistoryProperties chatHistoryProperties;
 
-    @Override
     @NonNull
+    @Override
     public void add(@NonNull String conversationId, @NonNull List<Message> messages) {
         tx.executeWithoutResult(status -> {
             Chat chat = chatRepository.getById(Long.valueOf(conversationId));
@@ -37,11 +40,14 @@ public class PostgresMemory implements ChatMemory {
         });
     }
 
-    @Override
     @NonNull
+    @Override
     public List<Message> get(@NonNull String conversationId) {
         List<ChatMessage> messages = tx.execute(status ->
-                chatmessageRepository.findByChatId(Long.valueOf(conversationId)));
+                chatmessageRepository.findByChatIdOrderDescLimit(
+                        Long.valueOf(conversationId),
+                        chatHistoryProperties.getContextLimit())
+        );
         return Objects.requireNonNull(messages).stream()
                 .map(this::toMessage).toList();
     }
