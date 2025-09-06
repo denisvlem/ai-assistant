@@ -97,7 +97,8 @@ public class ChatController {
                 .stream().chatResponse().subscribe(
                         result -> processAnotherResponseToken(result, sseEmitter),
                         sseEmitter::completeWithError,
-                        () -> log.info("Streaming for the chat {} response is finished", chatId));
+                        sseEmitter::complete
+                );
         return sseEmitter;
     }
 
