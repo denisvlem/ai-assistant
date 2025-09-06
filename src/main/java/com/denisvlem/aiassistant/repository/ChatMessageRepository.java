@@ -7,7 +7,7 @@ import java.util.List;
 public interface ChatMessageRepository {
     List<ChatMessage> findByChatId(Long id);
 
-    List<ChatMessage> findByChatIdOrderDescLimit(Long id, int limit);
+    List<ChatMessage> findByChatIdOrder(Long id);
 
     ChatMessage save(ChatMessage chatMessage);
 

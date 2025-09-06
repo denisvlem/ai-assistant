@@ -86,12 +86,11 @@ public class ChatMessageJdbcRepository implements ChatMessageRepository {
     }
 
     @Override
-    public List<ChatMessage> findByChatIdOrderDescLimit(Long id, int limit) {
+    public List<ChatMessage> findByChatIdOrder(Long id) {
         return jdbcTemplate.query(
-                "SELECT * FROM chat_message WHERE chat_id = ? ORDER BY created_at DESC LIMIT ?",
+                "SELECT * FROM chat_message WHERE chat_id = ? ORDER BY created_at",
                 messageMapper,
-                id,
-                limit
+                id
         );
     }
 }

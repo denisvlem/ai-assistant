@@ -43,12 +43,13 @@ public class PostgresMemory implements ChatMemory {
     @NonNull
     @Override
     public List<Message> get(@NonNull String conversationId) {
-        List<ChatMessage> messages = tx.execute(status ->
-                chatmessageRepository.findByChatIdOrderDescLimit(
-                        Long.valueOf(conversationId),
-                        chatHistoryProperties.getContextLimit())
-        );
-        return Objects.requireNonNull(messages).stream()
+        Long conversationIdLong = Long.valueOf(conversationId);
+        List<ChatMessage> history = Objects.requireNonNull(
+                tx.execute(status -> chatmessageRepository.findByChatIdOrder(conversationIdLong)));
+
+        long skip = Math.max(0L, (long) history.size() - chatHistoryProperties.getContextLimit());
+        return history.stream()
+                .skip(skip)
                 .map(this::toMessage).toList();
     }
 
